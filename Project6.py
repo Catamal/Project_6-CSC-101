@@ -81,11 +81,11 @@ def get_first_data_row(filename, header_lines):
 
 def get_confirmed_columns(preview_row, line_number):
     """Ask for columns and confirm how they interpret the first data row."""
-    print(f"\nFirst data row preview (file line {line_number}):")
-    for index, value in enumerate(preview_row, start=1):
-        print(f"  Column {index}: {value}")
-
     while True: # way more user friendly than a for loop as it repeats in case the user makes a mistake
+        print(f"\nFirst data row preview (file line {line_number}):")
+        for index, value in enumerate(preview_row, start=1):
+            print(f"  Column {index}: {value}")
+
         group_column = get_column("Group column (example: 1950-01-01 is column 1): ")
         name_column = get_column("Name column (example: Afghanistan is column 2): ")
         value_column = get_column("Value column (example: 7752 is column 4): ")
