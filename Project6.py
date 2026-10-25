@@ -1,24 +1,17 @@
 # Project 6: Bar Chart Display
 # 10/21/2026
 # Kingsley Wickstrom
-# Read and display grouped data from a CSV file in bar chart format;
+# Read and display grouped data from a text file in bar chart format;
 # README for more information.
 
-
-"""Read grouped records from a CSV file and display them as bar charts."""
-
-import csv
 from itertools import groupby
-
 import matplotlib.pyplot as pyplot
-
 from BarChart import BarChart
-
 
 def get_filename():
     """Ask for a readable filename."""
     while True:
-        filename = input("Enter the filename (.txt or .csv): ")
+        filename = input("Enter the text filename (for example, cities.txt): ")
         try:
             with open(filename, "r", encoding="utf-8", newline=""):
                 return filename
@@ -27,7 +20,8 @@ def get_filename():
 
 
 def get_integer(prompt, minimum):
-    """Read an integer from the user that is at least minimum."""
+    """Read an integer from the user that is at least minimum.
+    Also used to prevent ValueErrors when reading column numbers."""
     while True:
         try:
             value = int(input(prompt))
@@ -54,25 +48,30 @@ def get_seconds_with_default(prompt, default):
 
 
 def get_column(prompt):
-    """Read a 1-based CSV column number and return its 0-based index."""
+    """Read a 1-based file column number and return its 0-based index."""
     return get_integer(prompt, 1) - 1
+
+
+def split_fields(line):
+    """Split a comma-separated text-file line into its fields."""
+    return [field.strip() for field in line.rstrip("\r\n").split(",")]
 
 
 def get_first_data_row(filename, header_lines):
     """Return the first data row and its line number, skipping group counts."""
-    with open(filename, "r", encoding="utf-8", newline="") as data_file:
-        reader = csv.reader(data_file)
+    with open(filename, "r", encoding="utf-8") as data_file:
         line_number = 0
 
         for _ in range(header_lines):
-            if next(reader, None) is None:
+            if next(data_file, None) is None:
                 raise ValueError("The file ended before all header lines were skipped.")
             line_number += 1
 
-        for row in reader:
+        for line in data_file:
             line_number += 1
-            if not row or all(not field.strip() for field in row):
+            if not line.strip():
                 continue
+            row = split_fields(line)
             if len(row) == 1 and row[0].strip().isdigit():
                 continue
             return row, line_number
@@ -86,7 +85,7 @@ def get_confirmed_columns(preview_row, line_number):
     for index, value in enumerate(preview_row, start=1):
         print(f"  Column {index}: {value}")
 
-    while True:
+    while True: # way more user friendly than a for loop as it repeats in case the user makes a mistake
         group_column = get_column("Group column (example: 1950-01-01 is column 1): ")
         name_column = get_column("Name column (example: Afghanistan is column 2): ")
         value_column = get_column("Value column (example: 7752 is column 4): ")
@@ -124,19 +123,19 @@ def get_confirmed_columns(preview_row, line_number):
         for label, column in selected_columns:
             print(f"  {label}: {preview_row[column]}")
 
-        answer = input("Are these columns correct? [Y/n]: ").strip().lower()
+        answer = input("Are these columns correct? [Y/N]: ").strip().lower()
         if answer in ("", "y", "yes"):
             return group_column, name_column, value_column, category_column
         if answer not in ("n", "no"):
             print("Enter Y to continue or N to choose the columns again.")
 
 
-def read_records(reader, header_lines, group_column, name_column,
+def read_records(data_file, header_lines, group_column, name_column,
                  value_column, category_column):
     """Yield validated records as group, name, value, category, and line number."""
     line_number = 0
     for _ in range(header_lines):
-        if next(reader, None) is None:
+        if next(data_file, None) is None:
             raise ValueError("The file ended before all header lines were skipped.")
         line_number += 1
 
@@ -144,12 +143,13 @@ def read_records(reader, header_lines, group_column, name_column,
     required_column = max(columns)
 
     while True:
-        row = next(reader, None)
-        if row is None:
+        line = next(data_file, None)
+        if line is None:
             return
         line_number += 1
-        if not row or all(not field.strip() for field in row):
+        if not line.strip():
             continue
+        row = split_fields(line)
 
         if len(row) == 1 and row[0].strip().isdigit():
             record_count = int(row[0].strip())
@@ -160,15 +160,16 @@ def read_records(reader, header_lines, group_column, name_column,
 
             records_read = 0
             while records_read < record_count:
-                row = next(reader, None)
-                if row is None:
+                line = next(data_file, None)
+                if line is None:
                     raise ValueError(
                         f"Group starting on line {line_number} declares "
                         f"{record_count} records, but the file ended early."
                     )
                 line_number += 1
-                if not row or all(not field.strip() for field in row):
+                if not line.strip():
                     continue
+                row = split_fields(line)
                 yield _parse_record(
                     row, required_column, group_column, name_column,
                     value_column, category_column, line_number
@@ -209,17 +210,15 @@ def _parse_record(row, required_column, group_column, name_column,
 
 
 def main():
-    # Step 1: Ask which file to read and how many bars to display.
     filename = get_filename()
     num_bars = get_integer("How many bars should each chart show? ", 1)
 
-    # Step 2: Ask how many introductory/header lines to skip.
     header_lines = get_integer("How many header lines should be skipped? ", 0)
 
     try:
         preview_row, preview_line = get_first_data_row(filename, header_lines)
 
-        # Ask for the fields needed to interpret and label each chart.
+        # ask for the fields needed to interpret and label each chart.
         chart_title = input(
             f"Chart title (default: Top {num_bars} Records by Group): "
         ).strip()
@@ -244,14 +243,13 @@ def main():
         ) = get_confirmed_columns(preview_row, preview_line)
 
         pause_seconds = get_seconds_with_default(
-            "Seconds to show each chart before advancing [0.2]: ",
-            0.2,
+            "Seconds to show each chart before advancing [.01]: ",
+            .01,
         )
 
-        with open(filename, "r", encoding="utf-8", newline="") as data_file:
-            reader = csv.reader(data_file)
+        with open(filename, "r", encoding="utf-8") as data_file:
             records = read_records(
-                reader,
+                data_file,
                 header_lines,
                 group_column,
                 name_column,
@@ -261,16 +259,22 @@ def main():
             grouped_records = groupby(records, key=lambda record: record[0])
 
             chart = None
-            print("Displaying charts. Press Ctrl+C in the terminal to stop.")
-            # Step 7: Repeat steps 3-6 for each remaining group in the file.
+            stop_requested = False
+
+            def stop_on_key(event):
+                nonlocal stop_requested
+                if event.key in ("q", "Q", "escape", "Escape"):
+                    stop_requested = True
+
+            print("Displaying charts. Press Q or Esc in the chart window to stop.")
             for group_name, group in grouped_records:
-                # Step 3: Store only the current group's records in a dictionary.
                 group_data = {
                     index: (name, value, category)
-                    for index, (_, name, value, category, _) in enumerate(group)
+                    for index, (_ , name, value, category, _) in enumerate(group) 
+                    # this line unpacks the record tuple and ignores 
+                    # the group and line number
                 }
 
-                # Step 4: Sort this group's records by value, highest first.
                 ranked_records = sorted(
                     group_data.values(),
                     key=lambda record: record[1],
@@ -283,19 +287,23 @@ def main():
                         x_axis_label,
                         data_source,
                     )
+                    chart.fig.canvas.mpl_connect("key_press_event", stop_on_key)
                 else:
                     chart.reset()
 
-                # Step 5: Build and display a static chart for this group.
                 for name, value, category in ranked_records:
                     chart.add(name, value, category)
                 chart.set_caption(group_name)
                 chart.draw()
 
-                # Step 6: Pause so the chart can be seen before advancing.
                 pyplot.pause(pause_seconds)
+                if stop_requested:
+                    break
         if chart is None:
             print("The file contains no data records after the header.")
+        elif stop_requested:
+            pyplot.close(chart.fig)
+            print("Stopped the chart sequence.")
         else:
             chart.leave_window_open()
     except (OSError, ValueError) as error:

@@ -1,6 +1,6 @@
 # Project 6: Bar Chart Display
 
-This program reads grouped records from a comma-separated data file and displays a horizontal bar chart for each group. Records within each group are sorted by their numeric value, and only the requested number of top records are shown.
+This program reads grouped records from a plain-text data file and displays a horizontal bar chart for each group. Fields in the text files are separated by commas. The program sorts each group's records by their numeric values and shows the requested number of highest-valued records.
 
 ## Requirements
 
@@ -15,36 +15,54 @@ python -m pip install matplotlib
 
 ## Data file format
 
-The input must be a comma-separated file. Groups must appear in consecutive rows; for example, all records for one year should appear together. Values must be whole numbers. A file can use any extension, such as `.csv` or `.txt`.
+Use a plain-text file such as `cities.txt`, `countries.txt`, or `brands.txt`. Each data row contains comma-separated fields. Groups must appear consecutively, and values must be whole numbers.
 
-Some datasets, including Princeton's cities and countries files, put a single number before each group to state how many records follow. The program recognizes and skips these group-count lines automatically. These are separate from the introductory/header lines at the start of the file.
+Some files put a single number before each group to indicate how many records follow. The program skips these group-count lines automatically. They are separate from introductory/header lines at the start of the file.
 
-Example:
+For example:
 
-```csv
-Year,City,Population,Region
-2018,Tokyo,38194,East Asia
-2018,Delhi,27890,South Asia
-2018,Shanghai,25779,East Asia
-2019,Tokyo,37400,East Asia
-2019,Delhi,28500,South Asia
 ```
-
-The first row is the header. The `Year` column identifies groups, `City` is the bar name, `Population` is the value, and `Region` is the category used to color bars.
+4
+Year,City,Country,Population,Region
+2018,Tokyo,Japan,38194,East Asia
+2018,Delhi,India,27890,South Asia
+2019,Tokyo,Japan,37400,East Asia
+```
 
 ## Run the program
 
-Enter the requested information:
+Run `Project6.py`, then answer its prompts:
 
-1. Enter the data filename and how many bars each chart should show.
-2. Enter the number of introductory/header lines to skip. For `cities.txt` and `countries.txt`, enter `4`.
-3. Enter the chart title, value-axis label, and data source. Press Enter for a default if you do not want to provide one.
-4. The program previews the first data row, then asks for the column numbers for group, name, value, and category. Check the displayed selected values before confirming. For `countries.txt`, the first row includes `1950-01-01` (group/date), `Afghanistan` (name), `7752` (value), and `Asia` (category). If a selection is wrong, answer `N` and choose the columns again.
-5. Enter how many seconds each chart should stay on screen before advancing (press Enter for 0.2 seconds). You can use decimals, such as `0.5` or `2`.
+1. Enter the text filename (or its full path) and how many bars each chart should show.
+2. Enter how many introductory/header lines to skip. For the provided Princeton data files, enter `3` (3 lines about the database; all blank lines after are skipped)
+3. Enter the chart title (name), value-axis label (units), and data source (source if you don't want to display the file name). `Press Enter to use a default response`
+4. Check the preview of the first data row. For `countries.txt`, it looks like:
 
-The program reads one group at a time, sorts that group's records from highest to lowest, and displays a static chart before moving on to the next group. It leaves the final chart window open until you close it. Press Ctrl+C in the terminal to stop early.
+   ```text
+   Column 1: 1950-01-01
+   Column 2: Afghanistan
+   Column 3: Southern Asia
+   Column 4: 7752
+   Column 5: Asia
+   ```
+
+   Enter the column numbers when prompted:
+
+   ```text
+   Group column: 1
+   Name column: 2
+   Value column: 4
+   Category column: 5
+   ```
+
+   Check the selected fields shown by the program, then enter `Y` to continue or `N` to choose the columns again.
+5. Enter how many seconds each chart should stay on screen before advancing. Press Enter for `.01` seconds; decimal values above `0` are accepted.
+6. To stop the chart sequence early, click the chart window and press `Q` or `Esc`. You can also press Ctrl+C in the terminal which will stop through a `KeyboardInterrupt`.
+
+The program reads one group at a time, sorts its records from highest to lowest, and displays a static chart before moving to the next group. It leaves the final chart window open until you close it.
 
 ## Files
 
 - `Project6.py` reads, groups, sorts, and displays the input records.
-- `BarChart.py` provides the `BarChart` class used to draw the charts.
+- `BarChart.py` provides the chart-drawing class.
+- `brands.txt`, `cities.txt`, and `countries.txt` are sample data files from the Princeton bar chart assignment.
