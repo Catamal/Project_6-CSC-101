@@ -16,9 +16,9 @@ from BarChart import BarChart
 
 
 def get_filename():
-    """Ask for a readable CSV filename."""
+    """Ask for a readable filename."""
     while True:
-        filename = input("Enter the CSV filename: ")
+        filename = input("Enter the filename (.txt or .csv): ")
         try:
             with open(filename, "r", encoding="utf-8", newline=""):
                 return filename
@@ -56,6 +56,79 @@ def get_seconds_with_default(prompt, default):
 def get_column(prompt):
     """Read a 1-based CSV column number and return its 0-based index."""
     return get_integer(prompt, 1) - 1
+
+
+def get_first_data_row(filename, header_lines):
+    """Return the first data row and its line number, skipping group counts."""
+    with open(filename, "r", encoding="utf-8", newline="") as data_file:
+        reader = csv.reader(data_file)
+        line_number = 0
+
+        for _ in range(header_lines):
+            if next(reader, None) is None:
+                raise ValueError("The file ended before all header lines were skipped.")
+            line_number += 1
+
+        for row in reader:
+            line_number += 1
+            if not row or all(not field.strip() for field in row):
+                continue
+            if len(row) == 1 and row[0].strip().isdigit():
+                continue
+            return row, line_number
+
+    raise ValueError("No data rows were found after the header lines.")
+
+
+def get_confirmed_columns(preview_row, line_number):
+    """Ask for columns and confirm how they interpret the first data row."""
+    print(f"\nFirst data row preview (file line {line_number}):")
+    for index, value in enumerate(preview_row, start=1):
+        print(f"  Column {index}: {value}")
+
+    while True:
+        group_column = get_column("Group column (example: 1950-01-01 is column 1): ")
+        name_column = get_column("Name column (example: Afghanistan is column 2): ")
+        value_column = get_column("Value column (example: 7752 is column 4): ")
+        category_column = get_column("Category column (example: Asia is column 5): ")
+
+        selected_columns = (
+            ("Group", group_column),
+            ("Name", name_column),
+            ("Value", value_column),
+            ("Category", category_column),
+        )
+        if max(column for _, column in selected_columns) >= len(preview_row):
+            print(
+                f"This row has {len(preview_row)} columns. "
+                "One or more selected columns are outside the row; try again."
+            )
+            continue
+
+        try:
+            _parse_record(
+                preview_row,
+                max(column for _, column in selected_columns),
+                group_column,
+                name_column,
+                value_column,
+                category_column,
+                line_number,
+            )
+        except ValueError as error:
+            print(f"Those columns do not look usable: {error}")
+            print("Please choose the columns again.")
+            continue
+
+        print("\nPlease check the selected fields:")
+        for label, column in selected_columns:
+            print(f"  {label}: {preview_row[column]}")
+
+        answer = input("Are these columns correct? [Y/n]: ").strip().lower()
+        if answer in ("", "y", "yes"):
+            return group_column, name_column, value_column, category_column
+        if answer not in ("n", "no"):
+            print("Enter Y to continue or N to choose the columns again.")
 
 
 def read_records(reader, header_lines, group_column, name_column,
@@ -144,6 +217,8 @@ def main():
     header_lines = get_integer("How many header lines should be skipped? ", 0)
 
     try:
+        preview_row, preview_line = get_first_data_row(filename, header_lines)
+
         # Ask for the fields needed to interpret and label each chart.
         chart_title = input(
             f"Chart title (default: Top {num_bars} Records by Group): "
@@ -161,10 +236,12 @@ def main():
         if not data_source:
             data_source = f"Source: {filename}"
 
-        group_column = get_column("Group column number (1-based): ")
-        name_column = get_column("Name column number (1-based): ")
-        value_column = get_column("Value column number (1-based): ")
-        category_column = get_column("Category column number (1-based): ")
+        (
+            group_column,
+            name_column,
+            value_column,
+            category_column,
+        ) = get_confirmed_columns(preview_row, preview_line)
 
         pause_seconds = get_seconds_with_default(
             "Seconds to show each chart before advancing [0.2]: ",
@@ -222,7 +299,7 @@ def main():
         else:
             chart.leave_window_open()
     except (OSError, ValueError) as error:
-        print(f"Could not process the CSV file: {error}")
+        print(f"Could not process the file: {error}")
 
 
 if __name__ == "__main__":

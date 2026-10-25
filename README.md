@@ -39,7 +39,7 @@ Enter the requested information:
 1. Enter the data filename and how many bars each chart should show.
 2. Enter the number of introductory/header lines to skip. For `cities.txt` and `countries.txt`, enter `4`.
 3. Enter the chart title, value-axis label, and data source. Press Enter for a default if you do not want to provide one.
-4. Enter the 1-based column numbers for group, name, value, and category. For the Princeton population files, use `1`, `2`, `4`, and `5`, respectively.
+4. The program previews the first data row, then asks for the column numbers for group, name, value, and category. Check the displayed selected values before confirming. For `countries.txt`, the first row includes `1950-01-01` (group/date), `Afghanistan` (name), `7752` (value), and `Asia` (category). If a selection is wrong, answer `N` and choose the columns again.
 5. Enter how many seconds each chart should stay on screen before advancing (press Enter for 0.2 seconds). You can use decimals, such as `0.5` or `2`.
 
 The program reads one group at a time, sorts that group's records from highest to lowest, and displays a static chart before moving on to the next group. It leaves the final chart window open until you close it. Press Ctrl+C in the terminal to stop early.
