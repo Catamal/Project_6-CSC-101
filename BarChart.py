@@ -6,8 +6,8 @@ import matplotlib.pyplot as pyplot
 # color palette from https://vega.github.io/vega/docs/schemes/
 # (replaced #d62728 with #d64c4c)
 hex20 = ['#aec7e8', '#c5b0d5', '#c49c94', '#dbdb8d', '#17becf',
-         '#9edae5', '#f7b6d2', '#c7c7c7", '#1f77b4', '#ff7f0e',
-         '#ffbb78', '#98df8a', '#d64c4c", '#2ca02c', '#9467bd',
+         '#9edae5', '#f7b6d2', '#c7c7c7', '#1f77b4', '#ff7f0e',
+         '#ffbb78', '#98df8a', '#d64c4c', '#2ca02c', '#9467bd',
          '#8c564b', '#ff9896', '#e377c2', '#7f7f7f', '#bcbd22']
 
 class BarChart:
@@ -155,7 +155,7 @@ class BarChart:
         pyplot.subplots_adjust(left=0.01, right=0.90, top=0.8, bottom=0.0)
         pyplot.suptitle(self.title, y=0.95, fontweight='bold', fontsize=16)
         pyplot.barh(y_pos, self.values, align='center', color=self.colors, zorder=3)
-        pyplot.grid(b=True, which='major', axis='x', color='#E6E6E6', linewidth=0.5)
+        pyplot.grid(visible=True, which='major', axis='x', color='#E6E6E6', linewidth=0.5)
 
         # write caption
         if len(self.caption) <= 4:
@@ -231,6 +231,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
 
