@@ -4,6 +4,11 @@
 # Read and display grouped data from a text file in bar chart format;
 # README for more information.
 
+# new terms I learned while working on this project:
+# enumerate() adds an index to each record while building chart data.
+# groupby() groups consecutive records with the same group value.
+# pyplot controls the chart windows and pauses between charts.
+
 from itertools import groupby
 import matplotlib.pyplot as pyplot
 from BarChart import BarChart
@@ -81,7 +86,8 @@ def get_first_data_row(filename, header_lines):
 
 def get_confirmed_columns(preview_row, line_number):
     """Ask for columns and confirm how they interpret the first data row."""
-    while True: # way more user friendly than a for loop as it repeats in case the user makes a mistake
+    while True: # way more user friendly than a for loop as 
+        # it repeats in case the user makes a mistake
         print(f"\nFirst data row preview (file line {line_number}):")
         for index, value in enumerate(preview_row, start=1):
             print(f"  Column {index}: {value}")
@@ -220,14 +226,12 @@ def main():
 
         # ask for the fields needed to interpret and label each chart.
         chart_title = input(
-            f"Chart title (default: Top {num_bars} Records by Group): "
-        ).strip()
+            f"Chart title (default: Top {num_bars} Records by Group): ").strip()
         if not chart_title:
             chart_title = f"Top {num_bars} Records by Group"
 
         x_axis_label = input(
-            "Value-axis label (include units, if applicable): "
-        ).strip()
+            "Value-axis label (include units, if applicable): ").strip()
         if not x_axis_label:
             x_axis_label = "Value"
 
@@ -261,7 +265,7 @@ def main():
             chart = None
             stop_requested = False
 
-            def stop_on_key(event):
+            def stop_on_key(event):  # extra: stop program using Q or Esc
                 nonlocal stop_requested
                 if event.key in ("q", "Q", "escape", "Escape"):
                     stop_requested = True
